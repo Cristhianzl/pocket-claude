@@ -6,7 +6,7 @@ import { describe, it } from "node:test";
 import { StateStore } from "../src/store.js";
 
 async function tempFile(): Promise<string> {
-  const dir = await fs.mkdtemp(path.join(os.tmpdir(), "teleclaude-store-"));
+  const dir = await fs.mkdtemp(path.join(os.tmpdir(), "pocket-claude-store-"));
   return path.join(dir, "nested", "state.json");
 }
 

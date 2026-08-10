@@ -22,6 +22,9 @@ export type AgentEvent =
   | { type: "dead"; resumeFailed: boolean }
   | { type: "session"; sessionId: string; cwd: string; model: string };
 
+/** The `query` entry point, injectable so tests can drive the agent loop. */
+export type QueryFn = typeof query;
+
 export type AgentInit = {
   chatId: number;
   cwd: string;
@@ -30,6 +33,7 @@ export type AgentInit = {
   model?: string | undefined;
   emit: (event: AgentEvent) => void;
   onSessionId: (sessionId: string) => void;
+  queryFn?: QueryFn;
 };
 
 /** A resumed session whose transcript no longer exists cannot be recovered. */
@@ -66,6 +70,7 @@ export class ChatAgent {
   #pendingTurns = 0;
   #resumeFailed = false;
   #disposing = false;
+  #queryFn: QueryFn;
 
   constructor(init: AgentInit) {
     this.chatId = init.chatId;
@@ -74,10 +79,11 @@ export class ChatAgent {
     this.#modelOverride = init.model;
     this.#emit = init.emit;
     this.#onSessionId = init.onSessionId;
+    this.#queryFn = init.queryFn ?? query;
   }
 
   start(): void {
-    this.#query = query({
+    this.#query = this.#queryFn({
       prompt: this.#input.stream(),
       options: {
         cwd: this.cwd,

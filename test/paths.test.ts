@@ -50,7 +50,7 @@ describe("resolveWithinRoot", () => {
   let outside: string;
 
   before(async () => {
-    const base = await fs.mkdtemp(path.join(os.tmpdir(), "teleclaude-paths-"));
+    const base = await fs.mkdtemp(path.join(os.tmpdir(), "pocket-claude-paths-"));
     // The temp dir itself can be a symlink (/tmp -> /private/tmp on macOS), so
     // the fixture root is resolved before use.
     const realBase = await fs.realpath(base);

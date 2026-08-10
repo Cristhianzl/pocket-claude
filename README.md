@@ -1,4 +1,4 @@
-# TeleClaude
+# PocketClaude
 
 Run **Claude Code** on your own machine and drive it from **Telegram**.
 
@@ -15,6 +15,9 @@ Bot  ▸ working
      ▸ Added GET /health returning { status, uptime }. Tests pass.
      ▸ done · 24.1s · $0.0412
 ```
+
+> An independent community project. Not affiliated with, endorsed by, or
+> supported by Anthropic.
 
 ---
 
@@ -46,8 +49,8 @@ anyone holding it controls your bot.
 ### 2. Install
 
 ```bash
-git clone https://github.com/cristhianzl/teleclaude
-cd teleclaude
+git clone https://github.com/Cristhianzl/pocket-claude
+cd pocket-claude
 make setup
 ```
 
@@ -254,13 +257,18 @@ CI runs `make ci` (types, lint, tests) on Node 20, 22 and 24.
 `make test` runs the suite on Node's built-in test runner — no test framework
 dependency. `make coverage` adds a branch-coverage report.
 
-Covered: path confinement, configuration parsing, `.env` validation, Markdown →
-Telegram HTML, message splitting, the input stream, the per-chat mutex, the
-outbox ordering and fallback rules, and the state store.
+179 tests cover every module: the access gate, path confinement, configuration
+and `.env` validation, Markdown → Telegram HTML, message splitting, the agent
+loop, session lifecycle and recovery, the command handlers, the outbox ordering
+and fallback rules, and the state store. Branch coverage sits around 89%.
 
-Not covered by automated tests: `agent.ts`, `sessions.ts`, `commands.ts` and
-`index.ts` — the layers that talk to the Claude SDK and the Telegram API. They
-are exercised by `make doctor` and by running the bot.
+The Claude SDK and the Telegram API are injected rather than mocked globally, so
+the tests drive the real code paths: `ChatAgent` takes a `queryFn`,
+`SessionManager` takes an agent factory, and the command modules are registered
+onto a recording bot.
+
+`src/index.ts` — the entry point that loads configuration and starts polling —
+has no automated test; it is exercised by `make doctor` and by running the bot.
 
 ---
 
@@ -308,4 +316,4 @@ and is writable. `make reset` clears it if it got into a bad state.
 ## License
 
 [MIT](LICENSE) — do whatever you like, keep the copyright notice, no warranty.
-# claudebot
+# pocket-claude

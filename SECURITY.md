@@ -2,7 +2,7 @@
 
 ## What this software is
 
-TeleClaude gives a Telegram chat the ability to run Claude Code on the machine
+PocketClaude gives a Telegram chat the ability to run Claude Code on the machine
 hosting it, with `permissionMode: 'bypassPermissions'` — **every tool call,
 including shell commands, executes without asking for confirmation.**
 
@@ -28,7 +28,7 @@ reads — files, web pages, tool output — which may attempt prompt injection.
 | `APPROVED_DIRECTORY` | `/cd`, `/ls` and `/get` from reaching outside the root, including via `..` and via symlinks that resolve outside it. | Claude's own `Bash` tool, which can reach anything your user account can. |
 
 **`APPROVED_DIRECTORY` is not a sandbox.** It scopes the bot's own commands, not
-the agent's capabilities. If you need real isolation, run TeleClaude as a
+the agent's capabilities. If you need real isolation, run PocketClaude as a
 dedicated user account with narrow permissions, or inside a container or VM.
 
 ## Deploying responsibly

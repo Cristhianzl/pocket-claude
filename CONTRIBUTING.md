@@ -7,8 +7,8 @@ accident.
 ## Getting set up
 
 ```bash
-git clone https://github.com/cristhianzl/teleclaude
-cd teleclaude
+git clone https://github.com/Cristhianzl/pocket-claude
+cd pocket-claude
 make setup     # installs dependencies and creates .env
 make doctor    # tells you exactly what is still missing
 ```

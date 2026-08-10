@@ -1,13 +1,20 @@
 {
-  "name": "teleclaude",
+  "name": "pocket-claude",
   "version": "1.0.0",
   "description": "Run Claude Code on your own machine and drive it from Telegram",
-  "keywords": ["claude", "claude-code", "telegram", "bot", "agent", "anthropic"],
-  "homepage": "https://github.com/cristhianzl/teleclaude#readme",
-  "bugs": "https://github.com/cristhianzl/teleclaude/issues",
+  "keywords": [
+    "claude",
+    "claude-code",
+    "telegram",
+    "bot",
+    "agent",
+    "anthropic"
+  ],
+  "homepage": "https://github.com/Cristhianzl/pocket-claude#readme",
+  "bugs": "https://github.com/Cristhianzl/pocket-claude/issues",
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/cristhianzl/teleclaude.git"
+    "url": "git+https://github.com/Cristhianzl/pocket-claude.git"
   },
   "license": "MIT",
   "author": "Cristhian Zanforlin Lousa <cristhian.lousa@gmail.com>",
@@ -19,14 +26,15 @@
     "dev": "tsx watch src/index.ts",
     "start": "tsx src/index.ts",
     "doctor": "tsx scripts/doctor.ts",
-    "test": "tsx --test test/**/*.test.ts",
-    "test:coverage": "tsx --test --experimental-test-coverage test/**/*.test.ts",
+    "test": "LOG_LEVEL=silent tsx --test test/**/*.test.ts",
+    "test:coverage": "LOG_LEVEL=silent tsx --test --experimental-test-coverage test/**/*.test.ts",
     "lint": "biome check .",
     "format": "biome check --write .",
     "typecheck": "tsc --noEmit"
   },
   "dependencies": {
     "@anthropic-ai/claude-agent-sdk": "^0.3.226",
+    "@grammyjs/auto-retry": "^2.0.2",
     "dotenv": "^17.2.3",
     "grammy": "^1.39.1"
   },

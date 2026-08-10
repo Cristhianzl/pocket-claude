@@ -2,7 +2,7 @@ SHELL := /bin/bash
 .DEFAULT_GOAL := help
 
 NPM ?= npm
-SERVICE_NAME := teleclaude
+SERVICE_NAME := pocket-claude
 SYSTEMD_USER_DIR := $(HOME)/.config/systemd/user
 SERVICE_FILE := $(SYSTEMD_USER_DIR)/$(SERVICE_NAME).service
 
@@ -12,7 +12,7 @@ SERVICE_FILE := $(SYSTEMD_USER_DIR)/$(SERVICE_NAME).service
 
 ## help: Show this help
 help:
-	@echo "TeleClaude — Claude Code from Telegram"
+	@echo "PocketClaude — Claude Code from Telegram"
 	@echo ""
 	@echo "Quick start:"
 	@echo "  make setup      Install everything and create .env"
@@ -104,7 +104,7 @@ service: node_modules
 	@mkdir -p $(SYSTEMD_USER_DIR)
 	@printf '%s\n' \
 		'[Unit]' \
-		'Description=TeleClaude — Claude Code from Telegram' \
+		'Description=PocketClaude — Claude Code from Telegram' \
 		'After=network-online.target' \
 		'Wants=network-online.target' \
 		'' \

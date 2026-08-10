@@ -1,5 +1,5 @@
 import type { Bot } from "grammy";
-import { ChatAgent } from "./agent.js";
+import { type AgentInit, ChatAgent } from "./agent.js";
 import type { Config } from "./config.js";
 import { log } from "./logger.js";
 import { KeyedMutex } from "./mutex.js";
@@ -8,6 +8,9 @@ import { escapeHtml } from "./render.js";
 import type { StateStore } from "./store.js";
 
 export type Entry = { agent: ChatAgent; outbox: Outbox };
+
+/** Injectable so tests can drive session handling without the Claude SDK. */
+export type AgentFactory = (init: AgentInit) => ChatAgent;
 
 /**
  * One live ChatAgent per Telegram chat. Sessions are created lazily and resumed
@@ -19,11 +22,13 @@ export class SessionManager {
   #store: StateStore;
   #entries = new Map<number, Entry>();
   #mutex = new KeyedMutex<number>();
+  #createAgent: AgentFactory;
 
-  constructor(bot: Bot, config: Config, store: StateStore) {
+  constructor(bot: Bot, config: Config, store: StateStore, createAgent?: AgentFactory) {
     this.#bot = bot;
     this.#config = config;
     this.#store = store;
+    this.#createAgent = createAgent ?? ((init) => new ChatAgent(init));
   }
 
   get(chatId: number): Promise<Entry> {
@@ -72,7 +77,7 @@ export class SessionManager {
   #spawn(chatId: number, cwd: string, sessionId: string | null): Entry {
     const outbox = new Outbox(this.#bot, chatId);
 
-    const agent = new ChatAgent({
+    const agent = this.#createAgent({
       chatId,
       cwd,
       sessionId,

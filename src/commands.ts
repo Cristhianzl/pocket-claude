@@ -9,7 +9,7 @@ import type { SessionManager } from "./sessions.js";
 const MAX_UPLOAD_BYTES = 45 * 1024 * 1024;
 const MAX_LISTED_ENTRIES = 100;
 
-export const HELP = `<b>TeleClaude</b> — Claude Code from Telegram.
+export const HELP = `<b>PocketClaude</b> — Claude Code from Telegram.
 
 Send any text and it becomes a prompt for Claude in the current project.
 
