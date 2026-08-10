@@ -1,0 +1,294 @@
+# TeleClaude
+
+Run **Claude Code** on your own machine and drive it from **Telegram**.
+
+Leave your computer on at home, and work from your phone: send a prompt, watch
+the tool calls stream back, get the answer. Each Telegram chat keeps its own
+project directory and its own Claude session, which survive bot restarts.
+
+```
+You  ▸ add a health check endpoint to the API
+Bot  ▸ working
+       · read src/server.ts
+       · edit src/server.ts
+       · $ npm test
+     ▸ Added GET /health returning { status, uptime }. Tests pass.
+     ▸ done · 24.1s · $0.0412
+```
+
+---
+
+## Requirements
+
+- **Node.js 20+** (`node --version`)
+- **A Claude Code login** — run `claude` once in a terminal and sign in, or
+  export `ANTHROPIC_API_KEY`
+- **A Telegram bot token** — see step 1 below
+
+---
+
+## Setup
+
+### 1. Create a Telegram bot
+
+Open [@BotFather](https://t.me/BotFather) in Telegram and send:
+
+```
+/newbot
+```
+
+Pick a display name and a username ending in `bot`. BotFather replies with a
+token that looks like `1234567890:ABC-DEF1234ghIkl-zyx57W2v1u123ew11`. Keep it —
+anyone holding it controls your bot.
+
+### 2. Install
+
+```bash
+git clone <your-private-repo-url> teleclaude
+cd teleclaude
+make setup
+```
+
+`make setup` installs dependencies and creates `.env` from the template.
+
+### 3. Configure
+
+Open `.env` and fill in the four required values:
+
+```env
+TELEGRAM_BOT_TOKEN=1234567890:ABC-DEF1234ghIkl-zyx57W2v1u123ew11
+TELEGRAM_BOT_USERNAME=my_claude_bot
+APPROVED_DIRECTORY=/Users/yourname/projects
+ALLOWED_USERS=123456789
+```
+
+| Variable | What it is |
+|---|---|
+| `TELEGRAM_BOT_TOKEN` | The token from BotFather. |
+| `TELEGRAM_BOT_USERNAME` | Your bot's handle, without the `@`. |
+| `APPROVED_DIRECTORY` | Root directory the bot may work in. `/cd` cannot escape it. |
+| `ALLOWED_USERS` | Comma-separated Telegram user IDs allowed to use the bot. |
+
+> **`APPROVED_DIRECTORY` must be a path that actually exists on this machine.**
+> The value in the template is a macOS example — the bot refuses to start if the
+> directory is missing.
+
+#### Finding your Telegram user ID
+
+`ALLOWED_USERS` needs a numeric ID, not your `@handle`. Two ways to get it:
+
+**A. Ask another bot (nothing to run).** Message
+[@userinfobot](https://t.me/userinfobot) on Telegram and it replies with your ID.
+
+**B. Ask your own bot.** `/id` is the one command that works *before* you are
+allowlisted, precisely to solve this chicken-and-egg:
+
+1. Fill in the real token and a valid `APPROVED_DIRECTORY`. Leave
+   `ALLOWED_USERS=1` as a placeholder — it just has to be non-empty.
+2. `make run`
+3. In Telegram, open your bot (search for the username you gave BotFather) and
+   send `/id`. It replies with your user ID.
+4. Stop the bot (`Ctrl+C`), put that number in `ALLOWED_USERS`, and run again.
+
+`/start` will *not* work at step 3 — it sits behind the allowlist. Only `/id`
+gets through.
+
+Optional:
+
+| Variable | Default | What it does |
+|---|---|---|
+| `CLAUDE_MODEL` | Claude Code's default | Pins a specific model. |
+| `STATE_FILE` | `./data/state.json` | Where chat → project/session mapping lives. |
+
+### 4. Verify and run
+
+```bash
+make doctor   # checks Node, .env, credentials, directories
+make run
+```
+
+Message your bot on Telegram. Send `/start` for the command list.
+
+---
+
+## Keeping it running
+
+`make run` stops when you close the terminal. To keep the bot alive across
+reboots (Linux, systemd):
+
+```bash
+make service                    # install, enable and start a user service
+loginctl enable-linger $USER    # keep it running when you're logged out
+make logs                       # follow the output
+```
+
+Other service targets: `make service-status`, `make service-restart`,
+`make service-stop`, `make service-uninstall`.
+
+On macOS, use `launchd` or simply run `make run` inside `tmux`/`screen`.
+
+---
+
+## Usage
+
+Any plain text you send becomes a prompt for Claude in the chat's current
+project. Messages sent while Claude is working are queued, not dropped.
+
+### Commands
+
+| Command | What it does |
+|---|---|
+| `/start`, `/help` | Show the command list. |
+| `/pwd` | Current project directory. |
+| `/cd <path>` | Switch project. Starts a fresh session. Confined to `APPROVED_DIRECTORY`. |
+| `/ls [path]` | List a directory. |
+| `/projects` | List project directories, each as a ready-to-tap `/cd` command. |
+| `/new` | Drop the conversation context and start over in the same directory. |
+| `/stop` | Interrupt whatever Claude is doing right now. |
+| `/status` | Session ID, model, state and accumulated cost. |
+| `/get <path>` | Download a file from the machine (up to 45 MB). |
+| `/id` | Show your Telegram user ID. Works before you are allowlisted. |
+
+### How output is rendered
+
+- **Tool calls** collapse into one live "working" card that updates in place, so
+  a long run does not flood the chat.
+- **Claude's prose** arrives as normal messages, with code blocks preserved and
+  long answers split across messages.
+- **Each turn ends** with a one-line footer: duration and cost.
+
+### Authentication and cost
+
+The bot uses whatever credentials Claude Code already has on this machine. Two
+cases, and `/status` tells you which one you are in:
+
+- **Claude subscription** (you ran `claude` and logged in). No API key is
+  involved and nothing is billed per token — you consume your plan's usage
+  limits. The figure in the footer is marked `~$… est.`: it is what those tokens
+  *would* cost at API list prices, useful as a relative signal only.
+- **API key** (`ANTHROPIC_API_KEY` is set). Usage is billed per token and the
+  footer shows the real estimated charge.
+
+Either way, expect a fixed overhead per turn: every request carries Claude
+Code's system prompt and tool definitions (a few thousand tokens), so even
+"hello" reports a non-trivial number. Prompt caching brings this down over the
+course of a session.
+
+### Sessions
+
+One Claude session per Telegram chat. The session ID and project directory are
+persisted to `STATE_FILE`, so restarting the bot resumes exactly where you left
+off. `/cd` and `/new` start a fresh session; everything else continues the
+existing one.
+
+Use separate chats (or groups) to work on several projects in parallel — each
+gets its own independent session.
+
+---
+
+## Security
+
+This bot runs Claude with `permissionMode: 'bypassPermissions'`. **Claude
+executes every tool call — including `Bash` — without asking for confirmation.**
+That is deliberate: confirming each step from a phone defeats the purpose. It
+also means the bot is exactly as trusted as your Telegram account.
+
+Two barriers exist:
+
+1. **`ALLOWED_USERS`** — every update from an unlisted user is rejected and
+   logged. The bot refuses to start if this is empty.
+2. **`APPROVED_DIRECTORY`** — `/cd`, `/ls` and `/get` resolve paths and reject
+   anything outside this root, so a chat cannot walk the agent out to `~/.ssh`.
+
+The second barrier is not a sandbox. Claude's own `Bash` tool can still reach
+anywhere your user account can. Treat this as *your* shell exposed over
+Telegram, and act accordingly:
+
+- Never make the bot public or add users you do not fully trust.
+- Enable two-factor authentication on your Telegram account.
+- Point `APPROVED_DIRECTORY` at your code, not at your home directory.
+- Consider running it as a dedicated user account with narrower permissions.
+
+---
+
+## Make targets
+
+| Target | What it does |
+|---|---|
+| `make setup` | Install dependencies and create `.env`. |
+| `make doctor` | Check prerequisites and configuration. |
+| `make run` | Start the bot. |
+| `make dev` | Start with auto-reload on file changes. |
+| `make test` | Run the test suite. |
+| `make coverage` | Run the tests with a coverage report. |
+| `make check` | Type-check the project. |
+| `make verify` | Definition of done: types + tests + configuration. |
+| `make reset` | Forget every chat's project/session mapping. |
+| `make clean` | Remove `node_modules` and stored state. |
+| `make service` | Install and start the systemd user service. |
+| `make logs` | Follow service logs. |
+
+Run `make` with no arguments for the full list.
+
+---
+
+## Tests
+
+`make test` runs the suite on Node's built-in test runner — no test framework
+dependency. `make coverage` adds a branch-coverage report.
+
+Covered: path confinement, configuration parsing, `.env` validation, Markdown →
+Telegram HTML, message splitting, the input stream, the per-chat mutex, the
+outbox ordering and fallback rules, and the state store.
+
+Not covered by automated tests: `agent.ts`, `sessions.ts`, `commands.ts` and
+`index.ts` — the layers that talk to the Claude SDK and the Telegram API. They
+are exercised by `make doctor` and by running the bot.
+
+---
+
+## How it works
+
+```
+Telegram ──▸ grammY ──▸ SessionManager ──▸ ChatAgent ──▸ Claude Agent SDK ──▸ your files
+                            │                  │
+                     one per chat        streaming-input query(),
+                     persisted state     permissionMode=bypassPermissions
+```
+
+| File | Responsibility |
+|---|---|
+| `src/index.ts` | Bot wiring, commands, authentication, path confinement. |
+| `src/sessions.ts` | One live agent per chat; creation, reset, disposal. |
+| `src/agent.ts` | Wraps a long-lived streaming `query()`; turns SDK messages into events. |
+| `src/outbox.ts` | Serializes and rate-limits everything sent to a chat. |
+| `src/render.ts` | Markdown → Telegram HTML, message splitting, tool-call summaries. |
+| `src/store.ts` | Persists chat → project/session mapping. |
+| `src/config.ts` | Environment loading, validation, directory confinement. |
+
+The agent uses the SDK's **streaming-input mode** — one long-lived `query()` per
+chat rather than one per message. That is what makes message queueing and
+`/stop` (via `interrupt()`) work.
+
+---
+
+## Troubleshooting
+
+**"Not authorized"** — your user ID is not in `ALLOWED_USERS`. Send `/id`, add
+the number, restart.
+
+**Bot does not respond at all** — run `make doctor`. Most often the token is
+wrong or `APPROVED_DIRECTORY` does not exist.
+
+**"No Claude credentials"** — run `claude` in a terminal and sign in, or export
+`ANTHROPIC_API_KEY`.
+
+**Session did not resume after restart** — check that `data/state.json` exists
+and is writable. `make reset` clears it if it got into a bad state.
+
+---
+
+## License
+
+Private. Do not deploy publicly.
+# claudebot
