@@ -21,6 +21,8 @@ Bot  ▸ working
 ## Requirements
 
 - **Node.js 20+** (`node --version`)
+- **Linux or macOS.** Windows is not supported; use WSL2. `make service` is
+  Linux/systemd only — on macOS run `make run` inside `tmux` or use `launchd`.
 - **A Claude Code login** — run `claude` once in a terminal and sign in, or
   export `ANTHROPIC_API_KEY`
 - **A Telegram bot token** — see step 1 below
@@ -44,7 +46,7 @@ anyone holding it controls your bot.
 ### 2. Install
 
 ```bash
-git clone <your-private-repo-url> teleclaude
+git clone https://github.com/cristhianzl/teleclaude
 cd teleclaude
 make setup
 ```
@@ -181,8 +183,9 @@ persisted to `STATE_FILE`, so restarting the bot resumes exactly where you left
 off. `/cd` and `/new` start a fresh session; everything else continues the
 existing one.
 
-Use separate chats (or groups) to work on several projects in parallel — each
-gets its own independent session.
+To work on several projects at once, open a second Telegram chat with the bot
+from another allowlisted account, or switch with `/cd` — each chat keeps its own
+independent session.
 
 ---
 
@@ -193,21 +196,28 @@ executes every tool call — including `Bash` — without asking for confirmatio
 That is deliberate: confirming each step from a phone defeats the purpose. It
 also means the bot is exactly as trusted as your Telegram account.
 
-Two barriers exist:
+Three barriers exist:
 
 1. **`ALLOWED_USERS`** — every update from an unlisted user is rejected and
    logged. The bot refuses to start if this is empty.
-2. **`APPROVED_DIRECTORY`** — `/cd`, `/ls` and `/get` resolve paths and reject
-   anything outside this root, so a chat cannot walk the agent out to `~/.ssh`.
+2. **Private chats only** — the bot refuses to answer in groups and channels.
+   The allowlist controls who may *send* commands, not who may *read* the
+   replies; in a group, every member would see the files Claude prints.
+3. **`APPROVED_DIRECTORY`** — `/cd`, `/ls` and `/get` resolve paths and reject
+   anything outside this root, including via `..` and via symlinks that resolve
+   outside it.
 
-The second barrier is not a sandbox. Claude's own `Bash` tool can still reach
+`APPROVED_DIRECTORY` is not a sandbox. Claude's own `Bash` tool can still reach
 anywhere your user account can. Treat this as *your* shell exposed over
 Telegram, and act accordingly:
 
-- Never make the bot public or add users you do not fully trust.
+- Never add users you do not fully trust to `ALLOWED_USERS`.
 - Enable two-factor authentication on your Telegram account.
 - Point `APPROVED_DIRECTORY` at your code, not at your home directory.
 - Consider running it as a dedicated user account with narrower permissions.
+
+The full threat model, and how to report a vulnerability, is in
+[SECURITY.md](SECURITY.md).
 
 ---
 
@@ -225,12 +235,19 @@ Telegram, and act accordingly:
 | `make verify` | Definition of done: types + tests + configuration. |
 | `make reset` | Forget every chat's project/session mapping. |
 | `make clean` | Remove `node_modules` and stored state. |
+| `make lint` | Check formatting and lint rules. |
+| `make format` | Apply formatting and safe lint fixes. |
 | `make service` | Install and start the systemd user service. |
 | `make logs` | Follow service logs. |
 
 Run `make` with no arguments for the full list.
 
 ---
+
+## Contributing
+
+Issues and pull requests are welcome — see [CONTRIBUTING.md](CONTRIBUTING.md).
+CI runs `make ci` (types, lint, tests) on Node 20, 22 and 24.
 
 ## Tests
 
@@ -290,5 +307,5 @@ and is writable. `make reset` clears it if it got into a bad state.
 
 ## License
 
-Private. Do not deploy publicly.
+[MIT](LICENSE) — do whatever you like, keep the copyright notice, no warranty.
 # claudebot
