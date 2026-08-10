@@ -26,8 +26,8 @@
     "dev": "tsx watch src/index.ts",
     "start": "tsx src/index.ts",
     "doctor": "tsx scripts/doctor.ts",
-    "test": "LOG_LEVEL=silent tsx --test \"test/**/*.test.ts\"",
-    "test:coverage": "LOG_LEVEL=silent tsx --test --experimental-test-coverage \"test/**/*.test.ts\"",
+    "test": "node scripts/test.mjs",
+    "test:coverage": "node scripts/test.mjs --coverage",
     "lint": "biome check .",
     "format": "biome check --write .",
     "typecheck": "tsc --noEmit"
