@@ -1,7 +1,7 @@
-import { type Query, query, type SDKMessage } from "@anthropic-ai/claude-agent-sdk";
 import { existsSync, readFileSync } from "node:fs";
 import { join } from "node:path";
 import { fileURLToPath } from "node:url";
+import { type Query, query, type SDKMessage } from "@anthropic-ai/claude-agent-sdk";
 import { InputStream } from "./input-stream.js";
 import { describeToolUse } from "./render.js";
 

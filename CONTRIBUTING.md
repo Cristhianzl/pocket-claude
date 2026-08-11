@@ -61,7 +61,7 @@ If you believe you have found a vulnerability, do not open a public issue — se
 | `src/access.ts` | Who may talk to the bot, and from where. |
 | `src/paths.ts` | Path resolution confined to the approved root. |
 | `src/sessions.ts` | One live agent per chat: creation, reset, recovery. |
-| `src/agent.ts` | Wraps a long-lived streaming `query()` into events. |
+| `src/agent.ts` | Wraps a long-lived streaming `query()` into events; loads `.claude/` into every session. |
 | `src/outbox.ts` | Serializes and rate-limits everything sent to a chat. |
 | `src/render.ts` | Markdown to Telegram HTML, splitting, tool summaries. |
 | `src/store.ts` | Persists the chat to project/session mapping. |

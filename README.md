@@ -257,7 +257,7 @@ CI runs `make ci` (types, lint, tests) on Node 20, 22 and 24.
 `make test` runs the suite on Node's built-in test runner — no test framework
 dependency. `make coverage` adds a branch-coverage report.
 
-179 tests cover every module: the access gate, path confinement, configuration
+183 tests cover every module: the access gate, path confinement, configuration
 and `.env` validation, Markdown → Telegram HTML, message splitting, the agent
 loop, session lifecycle and recovery, the command handlers, the outbox ordering
 and fallback rules, and the state store. Branch coverage sits around 89%.
@@ -285,7 +285,7 @@ Telegram ──▸ grammY ──▸ SessionManager ──▸ ChatAgent ──▸
 |---|---|
 | `src/index.ts` | Bot wiring, commands, authentication, path confinement. |
 | `src/sessions.ts` | One live agent per chat; creation, reset, disposal. |
-| `src/agent.ts` | Wraps a long-lived streaming `query()`; turns SDK messages into events. |
+| `src/agent.ts` | Wraps a long-lived streaming `query()`; turns SDK messages into events; loads the bundled config. |
 | `src/outbox.ts` | Serializes and rate-limits everything sent to a chat. |
 | `src/render.ts` | Markdown → Telegram HTML, message splitting, tool-call summaries. |
 | `src/store.ts` | Persists chat → project/session mapping. |
@@ -294,6 +294,22 @@ Telegram ──▸ grammY ──▸ SessionManager ──▸ ChatAgent ──▸
 The agent uses the SDK's **streaming-input mode** — one long-lived `query()` per
 chat rather than one per message. That is what makes message queueing and
 `/stop` (via `interrupt()`) work.
+
+### The bundled config
+
+Claude normally reads `CLAUDE.md`, skills and slash commands from the directory
+it is working in, so what a chat gets would depend on where `/cd` points. This
+repository's own `.claude/` travels with the bot instead: it is loaded as a
+local plugin, and its `CLAUDE.md` is appended to Claude Code's system prompt.
+Every chat gets the same skills and instructions in every project.
+
+The path is resolved from `src/agent.ts` itself, never from the working
+directory. A project's own `.claude/` still loads on top, so per-project
+conventions keep working.
+
+Edit `.claude/` to change what every session gets. The `hooks` in
+`.claude/settings.json` are deliberately left out — they apply when you open
+*this* repository in Claude Code, not to the bot's sessions in other projects.
 
 ---
 
