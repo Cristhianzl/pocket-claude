@@ -1,6 +1,21 @@
 import { type Query, query, type SDKMessage } from "@anthropic-ai/claude-agent-sdk";
+import { existsSync, readFileSync } from "node:fs";
+import { join } from "node:path";
+import { fileURLToPath } from "node:url";
 import { InputStream } from "./input-stream.js";
 import { describeToolUse } from "./render.js";
+
+/**
+ * Resolved from this module, not from `cwd`: the agent's `cwd` is the chat's
+ * project, so config found there would differ per chat. This one ships with the
+ * bot and reaches every session.
+ */
+const CONFIG_DIR = fileURLToPath(new URL("../.claude", import.meta.url));
+
+const BASELINE_PATH = join(CONFIG_DIR, "CLAUDE.md");
+const BASELINE = existsSync(BASELINE_PATH)
+  ? readFileSync(BASELINE_PATH, { encoding: "utf-8" })
+  : undefined;
 
 export type AgentEvent =
   /** Prose the assistant wrote for the user. */
@@ -89,6 +104,13 @@ export class ChatAgent {
         cwd: this.cwd,
         permissionMode: "bypassPermissions",
         allowDangerouslySkipPermissions: true,
+        settingSources: ["user", "project", "local"],
+        plugins: [{ type: "local", path: CONFIG_DIR }],
+        systemPrompt: {
+          type: "preset",
+          preset: "claude_code",
+          ...(BASELINE ? { append: BASELINE } : {}),
+        },
         ...(this.sessionId ? { resume: this.sessionId } : {}),
         ...(this.#modelOverride ? { model: this.#modelOverride } : {}),
       },

@@ -1,4 +1,5 @@
 import assert from "node:assert/strict";
+import { sep } from "node:path";
 import { describe, it } from "node:test";
 import { type AgentEvent, ChatAgent } from "../src/agent.js";
 import {
@@ -94,6 +95,37 @@ describe("ChatAgent start options", () => {
     const { calls, settled } = harness({ model: "claude-sonnet-5" });
     await settled(() => calls.length === 1);
     assert.equal(calls[0]?.model, "claude-sonnet-5");
+  });
+
+  it("should_load_the_bundled_config_as_a_plugin", async () => {
+    const { calls, settled } = harness({ cwd: "/srv/api" });
+    await settled(() => calls.length === 1);
+    const plugin = calls[0]?.plugins?.[0];
+    assert.equal(plugin?.type, "local");
+    assert.ok(
+      plugin?.path.endsWith(`${sep}.claude`),
+      `expected the bundled config directory, got ${plugin?.path}`,
+    );
+  });
+
+  it("should_resolve_the_plugin_outside_the_project_directory", async () => {
+    const { calls, settled } = harness({ cwd: "/srv/api" });
+    await settled(() => calls.length === 1);
+    assert.equal(calls[0]?.plugins?.[0]?.path.startsWith("/srv/api"), false);
+  });
+
+  it("should_append_the_baseline_to_the_claude_code_preset", async () => {
+    const { calls, settled } = harness({});
+    await settled(() => calls.length === 1);
+    assert.equal(calls[0]?.systemPrompt?.type, "preset");
+    assert.equal(calls[0]?.systemPrompt?.preset, "claude_code");
+    assert.match(calls[0]?.systemPrompt?.append ?? "", /CLAUDE\.md/);
+  });
+
+  it("should_keep_filesystem_settings_enabled", async () => {
+    const { calls, settled } = harness({});
+    await settled(() => calls.length === 1);
+    assert.deepEqual(calls[0]?.settingSources, ["user", "project", "local"]);
   });
 });
 

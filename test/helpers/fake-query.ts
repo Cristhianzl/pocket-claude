@@ -7,6 +7,9 @@ export type QueryCall = {
   model?: string;
   permissionMode?: string;
   allowDangerouslySkipPermissions?: boolean;
+  settingSources?: string[];
+  plugins?: Array<{ type: string; path: string }>;
+  systemPrompt?: { type: string; preset: string; append?: string };
 };
 
 export function initMessage(overrides: Partial<Record<string, unknown>> = {}): SDKMessage {

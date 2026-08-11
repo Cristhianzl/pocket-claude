@@ -1,0 +1,5 @@
+{
+  "name": "pocketclaude-config",
+  "version": "1.0.0",
+  "description": "Skills, commands and rules PocketClaude loads into every chat session, whatever project it is working in."
+}
