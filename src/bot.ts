@@ -39,13 +39,10 @@ export function registerHandlers(bot: Bot, config: Config, sessions: SessionMana
 
   registerCommands(bot, config, sessions);
 
+  // Unmatched `/…` text falls through to Claude so the bundled config's slash
+  // commands are reachable.
   bot.on("message:text", async (ctx) => {
     const text = ctx.message.text;
-    if (text.startsWith("/")) {
-      await ctx.reply("Unknown command. /help lists what is available.");
-      return;
-    }
-
     const { agent } = await sessions.get(ctx.chat.id);
     const { queued } = agent.send(text);
     await ctx.api.sendChatAction(ctx.chat.id, "typing").catch((error: unknown) => {

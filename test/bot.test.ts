@@ -123,14 +123,22 @@ describe("text messages", () => {
     assert.deepEqual(replies, []);
   });
 
-  it("should_reject_an_unknown_slash_command_without_calling_the_agent", async () => {
+  it("should_forward_a_bundled_slash_command_to_the_agent", async () => {
     const { recorder, agents } = await harness();
-    const { ctx, lastReply } = fakeContext({ text: "/nope" });
+    const { ctx, replies } = fakeContext({ text: "/pocketclaude-config:commit" });
 
     await runText(recorder, ctx);
 
-    assert.match(lastReply(), /Unknown command/);
-    assert.equal(agents.created.length, 0);
+    assert.deepEqual(agents.last()?.sent, ["/pocketclaude-config:commit"]);
+    assert.deepEqual(replies, []);
+  });
+
+  it("should_still_route_the_bots_own_commands_to_their_handlers", async () => {
+    const { recorder } = await harness();
+
+    for (const name of ["pwd", "cd", "ls", "new", "stop", "status", "get"]) {
+      assert.ok(recorder.commands.has(name), `/${name} must stay a command handler`);
+    }
   });
 
   it("should_tell_the_user_when_a_message_is_queued", async () => {

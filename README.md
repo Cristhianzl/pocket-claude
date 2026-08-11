@@ -139,6 +139,10 @@ On macOS, use `launchd` or simply run `make run` inside `tmux`/`screen`.
 Any plain text you send becomes a prompt for Claude in the chat's current
 project. Messages sent while Claude is working are queued, not dropped.
 
+Anything the bot does not recognize as one of its own commands below — including
+`/pocketclaude-config:commit` and the other slash commands from the bundled
+config — is passed to Claude as well.
+
 ### Commands
 
 | Command | What it does |
@@ -257,7 +261,7 @@ CI runs `make ci` (types, lint, tests) on Node 20, 22 and 24.
 `make test` runs the suite on Node's built-in test runner — no test framework
 dependency. `make coverage` adds a branch-coverage report.
 
-183 tests cover every module: the access gate, path confinement, configuration
+184 tests cover every module: the access gate, path confinement, configuration
 and `.env` validation, Markdown → Telegram HTML, message splitting, the agent
 loop, session lifecycle and recovery, the command handlers, the outbox ordering
 and fallback rules, and the state store. Branch coverage sits around 89%.

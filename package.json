@@ -1,6 +1,6 @@
 {
   "name": "pocket-claude",
-  "version": "1.0.0",
+  "version": "1.0.2",
   "description": "Run Claude Code on your own machine and drive it from Telegram",
   "keywords": [
     "claude",
