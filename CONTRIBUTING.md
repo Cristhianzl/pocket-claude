@@ -66,6 +66,7 @@ If you believe you have found a vulnerability, do not open a public issue — se
 | `src/render.ts` | Markdown to Telegram HTML, splitting, tool summaries. |
 | `src/store.ts` | Persists the chat to project/session mapping. |
 | `src/config.ts`, `src/env.ts` | Configuration loading and validation. |
+| `src/banner.ts`, `src/statusline.ts` | Terminal banner and live status footer. |
 
 Keep files under 500 lines and one responsibility each. If a file starts needing
 "and" to describe it, split it.

@@ -23,6 +23,8 @@ export class SessionManager {
   #entries = new Map<number, Entry>();
   #mutex = new KeyedMutex<number>();
   #createAgent: AgentFactory;
+  #turns = 0;
+  #billedPerToken = false;
 
   constructor(bot: Bot, config: Config, store: StateStore, createAgent?: AgentFactory) {
     this.#bot = bot;
@@ -96,6 +98,8 @@ export class SessionManager {
             outbox.activity(event.text);
             break;
           case "done":
+            this.#turns += 1;
+            this.#billedPerToken = event.billedPerToken;
             outbox.notice(renderDone(event));
             break;
           case "error":
@@ -118,6 +122,23 @@ export class SessionManager {
     const entry: Entry = { agent, outbox };
     this.#entries.set(chatId, entry);
     return entry;
+  }
+
+  stats(): {
+    chats: number;
+    turns: number;
+    costUsd: number;
+    busy: boolean;
+    billedPerToken: boolean;
+  } {
+    const agents = [...this.#entries.values()].map((entry) => entry.agent);
+    return {
+      chats: agents.length,
+      turns: this.#turns,
+      costUsd: agents.reduce((total, agent) => total + agent.totalCostUsd, 0),
+      busy: agents.some((agent) => agent.busy),
+      billedPerToken: this.#billedPerToken,
+    };
   }
 
   async disposeAll(): Promise<void> {

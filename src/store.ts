@@ -48,6 +48,10 @@ export class StateStore {
     return (await this.#load())[String(chatId)];
   }
 
+  async count(): Promise<number> {
+    return Object.keys(await this.#load()).length;
+  }
+
   async set(chatId: number, value: ChatState): Promise<void> {
     const state = await this.#load();
     state[String(chatId)] = value;

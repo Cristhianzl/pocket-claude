@@ -158,6 +158,18 @@ config — is passed to Claude as well.
 | `/get <path>` | Download a file from the machine (up to 45 MB). |
 | `/id` | Show your Telegram user ID. Works before you are allowlisted. |
 
+### The terminal
+
+`make run` opens with a banner — bot handle, model, root directory, how many
+skills and commands are bundled, how many chats have a saved session — and then
+pins a status footer to the bottom of the window: uptime, live chats, turns
+served, accumulated cost, and whether Claude is working or idle. Log lines
+scroll above it without tearing it.
+
+This is drawn only on a terminal. Under `make service`, in a pipe, or with
+`NO_COLOR` set, the bot prints the same information as plain structured log
+lines instead, so journald stays readable.
+
 ### How output is rendered
 
 - **Tool calls** collapse into one live "working" card that updates in place, so
@@ -261,7 +273,7 @@ CI runs `make ci` (types, lint, tests) on Node 20, 22 and 24.
 `make test` runs the suite on Node's built-in test runner — no test framework
 dependency. `make coverage` adds a branch-coverage report.
 
-184 tests cover every module: the access gate, path confinement, configuration
+207 tests cover every module: the access gate, path confinement, configuration
 and `.env` validation, Markdown → Telegram HTML, message splitting, the agent
 loop, session lifecycle and recovery, the command handlers, the outbox ordering
 and fallback rules, and the state store. Branch coverage sits around 89%.
@@ -294,6 +306,8 @@ Telegram ──▸ grammY ──▸ SessionManager ──▸ ChatAgent ──▸
 | `src/render.ts` | Markdown → Telegram HTML, message splitting, tool-call summaries. |
 | `src/store.ts` | Persists chat → project/session mapping. |
 | `src/config.ts` | Environment loading, validation, directory confinement. |
+| `src/banner.ts` | The startup banner. |
+| `src/statusline.ts` | The live footer, and the log sink that keeps it intact. |
 
 The agent uses the SDK's **streaming-input mode** — one long-lived `query()` per
 chat rather than one per message. That is what makes message queueing and

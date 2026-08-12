@@ -10,7 +10,7 @@ import { describeToolUse } from "./render.js";
  * project, so config found there would differ per chat. This one ships with the
  * bot and reaches every session.
  */
-const CONFIG_DIR = fileURLToPath(new URL("../.claude", import.meta.url));
+export const CONFIG_DIR = fileURLToPath(new URL("../.claude", import.meta.url));
 
 const BASELINE_PATH = join(CONFIG_DIR, "CLAUDE.md");
 const BASELINE = existsSync(BASELINE_PATH)
